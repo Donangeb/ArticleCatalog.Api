@@ -1,10 +1,8 @@
 using ArticleCatalog.Application.DTOs;
 using ArticleCatalog.Application.Interfaces;
 using ArticleCatalog.Domain.Exceptions;
-using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace ArticleCatalog.Api.Tests;
 

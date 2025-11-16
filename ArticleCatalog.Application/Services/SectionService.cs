@@ -1,5 +1,4 @@
 ﻿using ArticleCatalog.Application.DTOs;
-using ArticleCatalog.Application.Interface;
 using ArticleCatalog.Application.Interfaces;
 using ArticleCatalog.Domain.Exceptions;
 using ArticleCatalog.Domain.Repositories;
@@ -7,7 +6,7 @@ using ArticleCatalog.Domain.ValueObjects;
 
 namespace ArticleCatalog.Application.Services;
 
-public class SectionService : ISectionService, ISectionServiceInternal
+public class SectionService : ISectionService
 {
     private readonly ISectionRepository _sectionRepository;
     private readonly IArticleRepository _articleRepository;

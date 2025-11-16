@@ -6,9 +6,7 @@ using ArticleCatalog.Domain.Entities;
 using ArticleCatalog.Domain.Exceptions;
 using ArticleCatalog.Domain.Repositories;
 using ArticleCatalog.Domain.Tests.Helpers;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace ArticleCatalog.Application.Tests;
 

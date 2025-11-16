@@ -1,7 +1,6 @@
 ﻿using ArticleCatalog.Domain.Common;
 using ArticleCatalog.Domain.Events;
 using ArticleCatalog.Domain.Exceptions;
-using ArticleCatalog.Domain.ValueObjects;
 
 namespace ArticleCatalog.Domain.Entities;
 

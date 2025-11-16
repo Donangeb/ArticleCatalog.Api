@@ -1,12 +1,9 @@
-using ArticleCatalog.Application.DTOs;
 using ArticleCatalog.Application.Services;
 using ArticleCatalog.Domain.Entities;
 using ArticleCatalog.Domain.Exceptions;
 using ArticleCatalog.Domain.Repositories;
 using ArticleCatalog.Domain.Tests.Helpers;
 using ArticleCatalog.Domain.ValueObjects;
-using FluentAssertions;
-using Moq;
 
 namespace ArticleCatalog.Application.Tests;
 

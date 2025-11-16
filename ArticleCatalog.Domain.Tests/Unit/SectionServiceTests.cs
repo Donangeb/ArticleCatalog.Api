@@ -1,6 +1,5 @@
 ﻿using ArticleCatalog.Domain.Entities;
 using ArticleCatalog.Domain.Tests.Helpers;
-using FluentAssertions;
 
 namespace ArticleCatalog.Domain.Tests.Unit;
 

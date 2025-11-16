@@ -6,7 +6,6 @@ using ArticleCatalog.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace ArticleCatalog.Application.Services;
-
 public class ArticleService : IArticleService
 {
     private readonly IArticleRepository _articleRepository;

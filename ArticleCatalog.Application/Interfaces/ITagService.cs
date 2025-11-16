@@ -1,5 +1,4 @@
 ﻿namespace ArticleCatalog.Application.Interfaces;
-
 public interface ITagService
 {
     Task<Guid> GetOrCreateAsync(string tagName);
