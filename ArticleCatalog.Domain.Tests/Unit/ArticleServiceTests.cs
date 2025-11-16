@@ -1,5 +1,6 @@
 ﻿using ArticleCatalog.Domain.Entities;
 using ArticleCatalog.Domain.Events;
+using ArticleCatalog.Domain.Tests.Helpers;
 
 namespace ArticleCatalog.Domain.Tests.Unit;
 
@@ -14,8 +15,8 @@ public class ArticleServiceTests
         // Arrange
         var title = "Test Article";
         var tagNames = new[] { "tag1", "tag2" };
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
         var tags = new[] { tag1, tag2 };
         var tagIds = new[] { tag1.Id, tag2.Id };
 
@@ -55,8 +56,8 @@ public class ArticleServiceTests
         // Arrange
         var title = "Another Article";
         var tagNames = new[] { "tech", "programming" };
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tech" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "programming" };
+        var tag1 = TagTestHelper.CreateTag("tech");
+        var tag2 = TagTestHelper.CreateTag("programming");
         var tags = new[] { tag1, tag2 };
         var tagIds = new[] { tag1.Id, tag2.Id };
 

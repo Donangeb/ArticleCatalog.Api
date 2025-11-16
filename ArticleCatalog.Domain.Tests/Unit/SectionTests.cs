@@ -1,4 +1,5 @@
 using ArticleCatalog.Domain.Entities;
+using ArticleCatalog.Domain.Tests.Helpers;
 using ArticleCatalog.Domain.ValueObjects;
 
 namespace ArticleCatalog.Domain.Tests.Unit;
@@ -12,8 +13,8 @@ public class SectionTests
     public void Create_WithTags_ShouldCreateSection()
     {
         // Arrange
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
         var tags = new[] { tag1, tag2 };
 
         // Act
@@ -32,7 +33,7 @@ public class SectionTests
     public void Create_WithSingleTag_ShouldCreateSection()
     {
         // Arrange
-        var tag = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
+        var tag = TagTestHelper.CreateTag("tag1");
         var tags = new[] { tag };
 
         // Act
@@ -64,8 +65,8 @@ public class SectionTests
     public void Create_ShouldAssociateTags()
     {
         // Arrange
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
         var tags = new[] { tag1, tag2 };
 
         // Act
@@ -82,8 +83,8 @@ public class SectionTests
     public void MatchesTagSet_WithMatchingKey_ShouldReturnTrue()
     {
         // Arrange
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
         var section = Section.Create(new[] { tag1, tag2 });
         var tagSetKey = TagSetKey.Create(new[] { "tag1", "tag2" });
 
@@ -98,8 +99,8 @@ public class SectionTests
     public void MatchesTagSet_WithDifferentKey_ShouldReturnFalse()
     {
         // Arrange
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
         var section = Section.Create(new[] { tag1, tag2 });
         var tagSetKey = TagSetKey.Create(new[] { "tag1", "tag3" });
 
@@ -115,8 +116,8 @@ public class SectionTests
     {
         // Arrange
         var longTagName = new string('a', 600);
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = longTagName };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var tag1 = TagTestHelper.CreateTag(longTagName);
+        var tag2 = TagTestHelper.CreateTag("tag2");
         var tags = new[] { tag1, tag2 };
 
         // Act

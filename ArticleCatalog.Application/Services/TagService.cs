@@ -22,7 +22,8 @@ public class TagService : ITagService
         if (existing != null)
             return existing.Id;
 
-        var newTag = new Tag { Id = Guid.NewGuid(), Name = tagName.Trim() };
+        var newTag = new Tag { Id = Guid.NewGuid() };
+        newTag.SetName(tagName);
         await _tagRepository.AddAsync(newTag);
         await _unitOfWork.SaveChangesAsync();
 

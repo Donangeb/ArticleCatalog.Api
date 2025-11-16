@@ -1,6 +1,7 @@
 ﻿using ArticleCatalog.Domain.Common;
 using ArticleCatalog.Domain.Events;
 using ArticleCatalog.Domain.Exceptions;
+using ArticleCatalog.Domain.ValueObjects;
 
 namespace ArticleCatalog.Domain.Entities;
 
@@ -14,6 +15,7 @@ public class Article : AggregateRoot<Guid>
     public string Title { get; private set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
+    public string TagSetKey { get; private set; } = string.Empty;
 
     public IReadOnlyCollection<ArticleTag> ArticleTags => _articleTags.AsReadOnly();
 
@@ -78,6 +80,10 @@ public class Article : AggregateRoot<Guid>
                 });
             }
         }
+
+        // Обновляем TagSetKey для оптимизации запросов
+        var tagSetKey = ValueObjects.TagSetKey.Create(tagNames);
+        TagSetKey = tagSetKey.Value;
 
         // Публикуем доменное событие
         if (isNewArticle)

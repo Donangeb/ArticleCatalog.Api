@@ -5,6 +5,7 @@ using ArticleCatalog.Domain.Common;
 using ArticleCatalog.Domain.Entities;
 using ArticleCatalog.Domain.Exceptions;
 using ArticleCatalog.Domain.Repositories;
+using ArticleCatalog.Domain.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -50,8 +51,8 @@ public class ArticleServiceTests
         var request = new CreateArticleRequest("Test Article", new List<string> { "tag1", "tag2" });
         var tag1Id = Guid.NewGuid();
         var tag2Id = Guid.NewGuid();
-        var tag1 = new Tag { Id = tag1Id, Name = "tag1" };
-        var tag2 = new Tag { Id = tag2Id, Name = "tag2" };
+        var tag1 = TagTestHelper.CreateTag(tag1Id, "tag1");
+        var tag2 = TagTestHelper.CreateTag(tag2Id, "tag2");
 
         Article? createdArticle = null;
         
@@ -119,11 +120,11 @@ public class ArticleServiceTests
         var existingArticle = Article.Create("Old Title", new[] { "tag1", "tag2" });
         var tag1Id = Guid.NewGuid();
         var tag3Id = Guid.NewGuid();
-        var tag1 = new Tag { Id = tag1Id, Name = "tag1" };
-        var tag3 = new Tag { Id = tag3Id, Name = "tag3" };
+        var tag1 = TagTestHelper.CreateTag(tag1Id, "tag1");
+        var tag3 = TagTestHelper.CreateTag(tag3Id, "tag3");
         // Устанавливаем начальные теги для existingArticle
-        var initialTag1 = new Tag { Id = tag1Id, Name = "tag1" };
-        var initialTag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var initialTag1 = TagTestHelper.CreateTag(tag1Id, "tag1");
+        var initialTag2 = TagTestHelper.CreateTag("tag2");
         var initialTags = new[] { initialTag1, initialTag2 };
         existingArticle.SetTags(new[] { tag1Id, initialTag2.Id }, initialTags, isNewArticle: true);
         // Устанавливаем навигационное свойство Tag для каждого ArticleTag
@@ -193,8 +194,8 @@ public class ArticleServiceTests
     public async Task GetAsync_WithValidId_ShouldReturnArticle()
     {
         // Arrange
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
         var tags = new[] { tag1, tag2 };
         var article = Article.Create("Test Article", new[] { "tag1", "tag2" });
         article.SetTags(new[] { tag1.Id, tag2.Id }, tags, isNewArticle: true);
@@ -236,8 +237,8 @@ public class ArticleServiceTests
         // Arrange
         var articleId = Guid.NewGuid();
         var article = Article.Create("Test Article", new[] { "tag1", "tag2" });
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
         var tags = new[] { tag1, tag2 };
         article.SetTags(new[] { tag1.Id, tag2.Id }, tags, isNewArticle: true);
         // Устанавливаем навигационное свойство Tag для каждого ArticleTag
@@ -323,7 +324,7 @@ public class ArticleServiceTests
         // Arrange
         var articleId = Guid.NewGuid();
         var article = Article.Create("Old Title", new[] { "tag1" });
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
         article.SetTags(new[] { tag1.Id }, new[] { tag1 }, isNewArticle: true);
         foreach (var articleTag in article.ArticleTags)
         {
@@ -346,7 +347,7 @@ public class ArticleServiceTests
         // Arrange
         var articleId = Guid.NewGuid();
         var article = Article.Create("Old Title", new[] { "tag1" });
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
         article.SetTags(new[] { tag1.Id }, new[] { tag1 }, isNewArticle: true);
         foreach (var articleTag in article.ArticleTags)
         {

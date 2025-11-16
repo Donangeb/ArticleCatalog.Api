@@ -51,21 +51,11 @@ public class ArticleRepository : IArticleRepository
 
     public async Task<IReadOnlyList<Article>> GetByTagSetKeyAsync(TagSetKey tagSetKey, CancellationToken cancellationToken = default)
     {
-        var articles = await _db.Article
+        // Оптимизированный запрос: используем TagSetKey из БД вместо загрузки всех статей
+        return await _db.Article
             .Include(a => a.ArticleTags)
             .ThenInclude(at => at.Tag)
+            .Where(a => a.TagSetKey == tagSetKey.Value)
             .ToListAsync(cancellationToken);
-
-        return articles
-            .Where(a =>
-            {
-                var articleTagNames = a.ArticleTags
-                    .OrderBy(at => at.Tag.Name)
-                    .Select(at => at.Tag.Name)
-                    .ToList();
-                var articleTagSetKey = TagSetKey.Create(articleTagNames);
-                return articleTagSetKey.Value == tagSetKey.Value;
-            })
-            .ToList();
     }
 }

@@ -17,8 +17,11 @@ public class TagRepository : ITagRepository
     public Task<Tag?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
         _db.Tag.FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
-    public Task<Tag?> GetByNameAsync(string name, CancellationToken cancellationToken = default) =>
-        _db.Tag.FirstOrDefaultAsync(t => t.Name.ToLower() == name.Trim().ToLowerInvariant(), cancellationToken);
+    public Task<Tag?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        var normalizedName = name.Trim().ToLowerInvariant();
+        return _db.Tag.FirstOrDefaultAsync(t => t.NormalizedName == normalizedName, cancellationToken);
+    }
 
     public Task<IReadOnlyList<Tag>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default) =>
         _db.Tag
@@ -32,7 +35,10 @@ public class TagRepository : ITagRepository
         return Task.CompletedTask;
     }
 
-    public Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken = default) =>
-        _db.Tag.AnyAsync(t => t.Name.ToLower() == name.Trim().ToLowerInvariant(), cancellationToken);
+    public Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        var normalizedName = name.Trim().ToLowerInvariant();
+        return _db.Tag.AnyAsync(t => t.NormalizedName == normalizedName, cancellationToken);
+    }
 }
 

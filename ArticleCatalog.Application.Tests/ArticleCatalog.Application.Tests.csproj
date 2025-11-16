@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ArticleCatalog.Application\ArticleCatalog.Application.csproj" />
     <ProjectReference Include="..\ArticleCatalog.Domain\ArticleCatalog.Domain.csproj" />
+    <ProjectReference Include="..\ArticleCatalog.Domain.Tests\ArticleCatalog.Domain.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

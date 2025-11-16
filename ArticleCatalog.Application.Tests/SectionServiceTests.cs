@@ -3,6 +3,7 @@ using ArticleCatalog.Application.Services;
 using ArticleCatalog.Domain.Entities;
 using ArticleCatalog.Domain.Exceptions;
 using ArticleCatalog.Domain.Repositories;
+using ArticleCatalog.Domain.Tests.Helpers;
 using ArticleCatalog.Domain.ValueObjects;
 using FluentAssertions;
 using Moq;
@@ -33,9 +34,9 @@ public class SectionServiceTests
     public async Task GetSectionsAsync_WithExistingSections_ShouldReturnOrderedSections()
     {
         // Arrange
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
-        var tag3 = new Tag { Id = Guid.NewGuid(), Name = "tag3" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
+        var tag3 = TagTestHelper.CreateTag("tag3");
 
         var section1 = Section.Create(new[] { tag1, tag2 });
         var section2 = Section.Create(new[] { tag3 });
@@ -96,9 +97,9 @@ public class SectionServiceTests
     public async Task GetSectionsAsync_ShouldOrderSectionsByArticlesCountDescending()
     {
         // Arrange
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
-        var tag3 = new Tag { Id = Guid.NewGuid(), Name = "tag3" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
+        var tag3 = TagTestHelper.CreateTag("tag3");
 
         var section1 = Section.Create(new[] { tag1 });
         var section2 = Section.Create(new[] { tag2 });
@@ -149,8 +150,8 @@ public class SectionServiceTests
     {
         // Arrange
         var sectionId = Guid.NewGuid();
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
         
         var section = Section.Create(new[] { tag1, tag2 });
         foreach (var sectionTag in section.SectionTags)
@@ -222,8 +223,8 @@ public class SectionServiceTests
     {
         // Arrange
         var sectionId = Guid.NewGuid();
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
         
         var section = Section.Create(new[] { tag1, tag2 });
         foreach (var sectionTag in section.SectionTags)
@@ -251,7 +252,7 @@ public class SectionServiceTests
     {
         // Arrange
         var sectionId = Guid.NewGuid();
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
         var section = Section.Create(new[] { tag1 });
         foreach (var sectionTag in section.SectionTags)
         {
@@ -311,9 +312,9 @@ public class SectionServiceTests
     {
         // Arrange
         var sectionId = Guid.NewGuid();
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
-        var tag3 = new Tag { Id = Guid.NewGuid(), Name = "tag3" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
+        var tag3 = TagTestHelper.CreateTag("tag3");
         
         var section = Section.Create(new[] { tag1, tag2, tag3 });
         foreach (var sectionTag in section.SectionTags)

@@ -21,6 +21,13 @@ public class ArticleConfiguration : IEntityTypeConfiguration<Article>
         b.Property(x => x.UpdatedAt)
             .IsRequired(false);
 
+        b.Property(x => x.TagSetKey)
+            .HasMaxLength(2048)
+            .IsRequired();
+
+        // Индекс для оптимизации поиска по TagSetKey
+        b.HasIndex(x => x.TagSetKey);
+
         // Настройка приватной коллекции для EF Core
         b.Metadata.FindNavigation(nameof(Article.ArticleTags))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);

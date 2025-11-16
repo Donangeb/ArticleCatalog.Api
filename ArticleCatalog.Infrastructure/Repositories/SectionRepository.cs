@@ -54,23 +54,9 @@ public class SectionRepository : ISectionRepository
 
     public async Task<int> CountArticlesByTagSetKeyAsync(TagSetKey tagSetKey, CancellationToken cancellationToken = default)
     {
-        var articles = await _db.Article
-            .Include(a => a.ArticleTags)
-            .ThenInclude(at => at.Tag)
-            .ToListAsync(cancellationToken);
-
-        var matchingArticles = articles
-            .Where(a =>
-            {
-                var articleTagNames = a.ArticleTags
-                    .OrderBy(at => at.Tag.Name)
-                    .Select(at => at.Tag.Name)
-                    .ToList();
-                var articleTagSetKey = TagSetKey.Create(articleTagNames);
-                return articleTagSetKey.Value == tagSetKey.Value;
-            })
-            .Count();
-
-        return matchingArticles;
+        // Оптимизированный запрос: используем TagSetKey из БД вместо загрузки всех статей
+        return await _db.Article
+            .Where(a => a.TagSetKey == tagSetKey.Value)
+            .CountAsync(cancellationToken);
     }
 }

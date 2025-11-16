@@ -1,6 +1,7 @@
 using ArticleCatalog.Domain.Entities;
 using ArticleCatalog.Domain.Events;
 using ArticleCatalog.Domain.Exceptions;
+using ArticleCatalog.Domain.Tests.Helpers;
 
 namespace ArticleCatalog.Domain.Tests.Unit;
 
@@ -111,8 +112,8 @@ public class ArticleTests
     {
         // Arrange
         var article = Article.Create("Test Article", new[] { "tag1" });
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
         var tags = new[] { tag1, tag2 };
         var tagIds = tags.Select(t => t.Id);
 
@@ -132,11 +133,11 @@ public class ArticleTests
     {
         // Arrange
         var article = Article.Create("Test Article", new[] { "tag1" });
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
         article.SetTags(new[] { tag1.Id }, new[] { tag1 }, isNewArticle: true);
         article.ClearDomainEvents();
 
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var tag2 = TagTestHelper.CreateTag("tag2");
         var tags = new[] { tag2 };
         var tagIds = tags.Select(t => t.Id);
 
@@ -155,9 +156,9 @@ public class ArticleTests
     {
         // Arrange
         var article = Article.Create("Test Article", new[] { "tag1", "tag2", "tag3" });
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
-        var tag3 = new Tag { Id = Guid.NewGuid(), Name = "tag3" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
+        var tag3 = TagTestHelper.CreateTag("tag3");
         var tags = new[] { tag1, tag2, tag3 };
         var tagIds = tags.Select(t => t.Id);
 
@@ -221,9 +222,9 @@ public class ArticleTests
     {
         // Arrange
         var article = Article.Create("Test Article", new[] { "tag1", "tag2", "tag3" });
-        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
-        var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
-        var tag3 = new Tag { Id = Guid.NewGuid(), Name = "tag3" };
+        var tag1 = TagTestHelper.CreateTag("tag1");
+        var tag2 = TagTestHelper.CreateTag("tag2");
+        var tag3 = TagTestHelper.CreateTag("tag3");
         var tags = new[] { tag1, tag2, tag3 };
         var tagIds = tags.Select(t => t.Id);
         article.SetTags(tagIds, tags, isNewArticle: true);

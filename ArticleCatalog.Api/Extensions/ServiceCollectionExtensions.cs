@@ -2,7 +2,6 @@
 using ArticleCatalog.Application.Interfaces;
 using ArticleCatalog.Application.Services;
 using ArticleCatalog.Application.Validators;
-using ArticleCatalog.Domain.DomainServices;
 using ArticleCatalog.Domain.Repositories;
 using ArticleCatalog.Infrastructure.Data;
 using ArticleCatalog.Infrastructure.Repositories;
@@ -33,9 +32,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IArticleRepository, ArticleRepository>();
         services.AddScoped<ISectionRepository, SectionRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
-
-        // Domain Services
-        services.AddScoped<ISectionGenerator, SectionGenerator>();
 
         // Application Services
         services.AddScoped<IArticleService, ArticleService>();

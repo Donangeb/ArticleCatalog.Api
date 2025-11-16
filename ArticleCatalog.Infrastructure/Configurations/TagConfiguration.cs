@@ -15,6 +15,11 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
             .HasMaxLength(256)
             .IsRequired();
 
-        b.HasIndex(x => x.Name).IsUnique();
+        b.Property(x => x.NormalizedName)
+            .HasMaxLength(256)
+            .IsRequired();
+
+        // Уникальный индекс на нормализованное имя для регистро-независимой уникальности
+        b.HasIndex(x => x.NormalizedName).IsUnique();
     }
 }
