@@ -275,5 +275,110 @@ public class ArticleServiceTests
         await act.Should().ThrowAsync<NotFoundException>()
             .WithMessage($"Article {articleId} not found");
     }
+
+    [Fact]
+    public async Task CreateAsync_WithEmptyTags_ShouldThrowValidationException()
+    {
+        // Arrange
+        var request = new CreateArticleRequest("Test Article", new List<string>());
+
+        // Настраиваем моки для пустого списка тегов
+        _tagServiceMock.Setup(x => x.GetOrCreateManyAsync(request.Tags))
+            .ReturnsAsync(Array.Empty<Guid>());
+        _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<Tag>());
+
+        // Act & Assert
+        // Валидация должна произойти в Article.Create, который проверяет tagNames
+        var act = async () => await _service.CreateAsync(request);
+        await act.Should().ThrowAsync<ValidationException>();
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithDuplicateTags_ShouldThrowValidationException()
+    {
+        // Arrange
+        var request = new CreateArticleRequest("Test Article", new List<string> { "tag1", "tag1" });
+
+        // Act & Assert
+        var act = async () => await _service.CreateAsync(request);
+        await act.Should().ThrowAsync<ValidationException>();
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithTooLongTitle_ShouldThrowValidationException()
+    {
+        // Arrange
+        var longTitle = new string('A', 257); // Превышает лимит в 256 символов
+        var request = new CreateArticleRequest(longTitle, new List<string> { "tag1" });
+
+        // Act & Assert
+        var act = async () => await _service.CreateAsync(request);
+        await act.Should().ThrowAsync<ValidationException>();
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithInvalidTitle_ShouldThrowValidationException()
+    {
+        // Arrange
+        var articleId = Guid.NewGuid();
+        var article = Article.Create("Old Title", new[] { "tag1" });
+        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
+        article.SetTags(new[] { tag1.Id }, new[] { tag1 }, isNewArticle: true);
+        foreach (var articleTag in article.ArticleTags)
+        {
+            articleTag.Tag = tag1;
+        }
+
+        var request = new UpdateArticleRequest("", new List<string> { "tag1" });
+
+        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(article);
+
+        // Act & Assert
+        var act = async () => await _service.UpdateAsync(articleId, request);
+        await act.Should().ThrowAsync<ValidationException>();
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithEmptyTags_ShouldThrowValidationException()
+    {
+        // Arrange
+        var articleId = Guid.NewGuid();
+        var article = Article.Create("Old Title", new[] { "tag1" });
+        var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
+        article.SetTags(new[] { tag1.Id }, new[] { tag1 }, isNewArticle: true);
+        foreach (var articleTag in article.ArticleTags)
+        {
+            articleTag.Tag = tag1;
+        }
+
+        var request = new UpdateArticleRequest("New Title", new List<string>());
+
+        // Настраиваем моки для пустого списка тегов
+        _tagServiceMock.Setup(x => x.GetOrCreateManyAsync(request.Tags))
+            .ReturnsAsync(Array.Empty<Guid>());
+        _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<Tag>());
+
+        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(article);
+
+        // Act & Assert
+        // Валидация должна произойти в SetTags, который проверяет количество тегов
+        var act = async () => await _service.UpdateAsync(articleId, request);
+        await act.Should().ThrowAsync<ValidationException>();
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithWhitespaceTitle_ShouldThrowValidationException()
+    {
+        // Arrange
+        var request = new CreateArticleRequest("   ", new List<string> { "tag1" });
+
+        // Act & Assert
+        var act = async () => await _service.CreateAsync(request);
+        await act.Should().ThrowAsync<ValidationException>();
+    }
 }
 

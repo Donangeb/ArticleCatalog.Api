@@ -35,7 +35,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITagRepository, TagRepository>();
 
         // Domain Services
-        services.AddScoped<ISectionGenerator, Domain.DomainServices.SectionGenerator>();
+        services.AddScoped<ISectionGenerator, SectionGenerator>();
 
         // Application Services
         services.AddScoped<IArticleService, ArticleService>();

@@ -49,6 +49,12 @@ public class Article : AggregateRoot<Guid>
     /// </summary>
     public void SetTags(IEnumerable<Guid> tagIds, IEnumerable<Tag> allTags, bool isNewArticle = false)
     {
+        if (tagIds == null)
+            throw new ValidationException("Tag IDs cannot be null");
+        
+        if (allTags == null)
+            throw new ValidationException("Tags cannot be null");
+        
         var tagIdsList = tagIds.ToList();
         ValidateTagCount(tagIdsList.Count);
 
@@ -144,6 +150,9 @@ public class Article : AggregateRoot<Guid>
 
     private static void ValidateTagCount(int count)
     {
+        if (count == 0)
+            throw new ValidationException("At least one tag is required");
+        
         if (count > 256)
             throw new ValidationException("Too many tags (maximum 256 tags)");
     }
