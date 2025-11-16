@@ -1,6 +1,7 @@
 ﻿using ArticleCatalog.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 namespace ArticleCatalog.Infrastructure.Configurations;
 
 public class SectionTagConfiguration : IEntityTypeConfiguration<SectionTag>

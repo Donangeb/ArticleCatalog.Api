@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ArticleCatalog.Application.Interface;
 
-namespace ArticleCatalog.Application.Interfaces
+public interface ISectionServiceInternal
 {
-    public interface ISectionServiceInternal
-    {
-        Task AssignArticleToSectionAsync(Guid articleId);
-        Task CleanupSectionsAsync();
-    }
+    Task AssignArticleToSectionAsync(Guid articleId);
+    Task CleanupSectionsAsync();
 }

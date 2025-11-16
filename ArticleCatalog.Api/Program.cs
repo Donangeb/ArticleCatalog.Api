@@ -1,10 +1,12 @@
 using ArticleCatalog.Api.Extensions;
 using ArticleCatalog.Infrastructure.Data;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<ArticleCatalog.Application.Validators.CreateArticleRequestValidator>());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -20,7 +22,7 @@ using (var scope = app.Services.CreateScope())
     
     logger.LogInformation("Applying database migrations...");
     
-    var maxRetries = 10;
+    var maxRetries = 3;
     var delay = TimeSpan.FromSeconds(3);
     
     for (int i = 0; i < maxRetries; i++)

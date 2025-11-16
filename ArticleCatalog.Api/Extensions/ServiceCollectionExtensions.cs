@@ -1,10 +1,12 @@
 ﻿using ArticleCatalog.Application.EventHandlers;
 using ArticleCatalog.Application.Interfaces;
 using ArticleCatalog.Application.Services;
+using ArticleCatalog.Application.Validators;
 using ArticleCatalog.Domain.DomainServices;
 using ArticleCatalog.Domain.Repositories;
 using ArticleCatalog.Infrastructure.Data;
 using ArticleCatalog.Infrastructure.Repositories;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace ArticleCatalog.Api.Extensions;
@@ -47,6 +49,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDomainEventHandler<Domain.Events.ArticleCreatedEvent>, ArticleCreatedEventHandler>();
         services.AddScoped<IDomainEventHandler<Domain.Events.ArticleTagsChangedEvent>, ArticleTagsChangedEventHandler>();
         services.AddScoped<IDomainEventHandler<Domain.Events.ArticleDeletedEvent>, ArticleDeletedEventHandler>();
+
+        // FluentValidation
+        services.AddValidatorsFromAssemblyContaining<CreateArticleRequestValidator>();
 
         return services;
     }

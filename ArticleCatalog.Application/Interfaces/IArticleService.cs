@@ -1,7 +1,6 @@
 ﻿using ArticleCatalog.Application.DTOs;
 
 namespace ArticleCatalog.Application.Interfaces;
-
 public interface IArticleService
 {
     Task<ArticleDto> CreateAsync(CreateArticleRequest request);

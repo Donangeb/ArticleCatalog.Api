@@ -1,8 +1,7 @@
-﻿namespace ArticleCatalog.Application.Interfaces
+﻿namespace ArticleCatalog.Application.Interfaces;
+
+public interface ITagService
 {
-    public interface ITagService
-    {
-        Task<Guid> GetOrCreateAsync(string tagName);
-        Task<IReadOnlyList<Guid>> GetOrCreateManyAsync(IEnumerable<string> tagNames);
-    }
+    Task<Guid> GetOrCreateAsync(string tagName);
+    Task<IReadOnlyList<Guid>> GetOrCreateManyAsync(IEnumerable<string> tagNames);
 }

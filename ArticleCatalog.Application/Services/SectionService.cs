@@ -1,6 +1,6 @@
 ﻿using ArticleCatalog.Application.DTOs;
+using ArticleCatalog.Application.Interface;
 using ArticleCatalog.Application.Interfaces;
-using ArticleCatalog.Domain.Entities;
 using ArticleCatalog.Domain.Exceptions;
 using ArticleCatalog.Domain.Repositories;
 using ArticleCatalog.Domain.ValueObjects;
@@ -11,16 +11,13 @@ public class SectionService : ISectionService, ISectionServiceInternal
 {
     private readonly ISectionRepository _sectionRepository;
     private readonly IArticleRepository _articleRepository;
-    private readonly ITagRepository _tagRepository;
 
     public SectionService(
         ISectionRepository sectionRepository,
-        IArticleRepository articleRepository,
-        ITagRepository tagRepository)
+        IArticleRepository articleRepository)
     {
         _sectionRepository = sectionRepository;
         _articleRepository = articleRepository;
-        _tagRepository = tagRepository;
     }
 
     public async Task<IReadOnlyList<SectionDto>> GetSectionsAsync()

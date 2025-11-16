@@ -1,10 +1,8 @@
 ﻿using ArticleCatalog.Application.DTOs;
 using ArticleCatalog.Application.Interfaces;
-using ArticleCatalog.Application.Services;
 using ArticleCatalog.Domain.Entities;
 using ArticleCatalog.Domain.Exceptions;
 using ArticleCatalog.Domain.Repositories;
-using ArticleCatalog.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace ArticleCatalog.Application.Services;
