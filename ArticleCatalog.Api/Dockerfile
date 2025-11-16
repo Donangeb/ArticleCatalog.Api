@@ -1,40 +1,59 @@
-# См. статью по ссылке https://aka.ms/customizecontainer, чтобы узнать как настроить контейнер отладки и как Visual Studio использует этот Dockerfile для создания образов для ускорения отладки.
-
-# Этот этап используется при запуске из VS в быстром режиме (по умолчанию для конфигурации отладки)
+# Этап 1. Runtime-образ (используется final)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
 
-# Этот этап используется для сборки проекта службы
+# Этап 2. Build SDK
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
+ARG BUILD_CONFIGURATION=Development
 WORKDIR /src
 
-# Копируем файлы проектов для восстановления зависимостей
+# Копируем основные проекты
 COPY ["ArticleCatalog.Api/ArticleCatalog.Api.csproj", "ArticleCatalog.Api/"]
 COPY ["ArticleCatalog.Application/ArticleCatalog.Application.csproj", "ArticleCatalog.Application/"]
 COPY ["ArticleCatalog.Domain/ArticleCatalog.Domain.csproj", "ArticleCatalog.Domain/"]
 COPY ["ArticleCatalog.Infrastructure/ArticleCatalog.Infrastructure.csproj", "ArticleCatalog.Infrastructure/"]
 
-# Восстанавливаем зависимости
-RUN dotnet restore "./ArticleCatalog.Api/ArticleCatalog.Api.csproj"
+# Копируем тестовые проекты
+COPY ["ArticleCatalog.Domain.Tests/ArticleCatalog.Domain.Tests.csproj", "ArticleCatalog.Domain.Tests/"]
+COPY ["ArticleCatalog.Application.Tests/ArticleCatalog.Application.Tests.csproj", "ArticleCatalog.Application.Tests/"]
+COPY ["ArticleCatalog.Api.Tests/ArticleCatalog.Api.Tests.csproj", "ArticleCatalog.Api.Tests/"]
 
-# Копируем остальные файлы
+# Restore
+RUN dotnet restore "ArticleCatalog.Api/ArticleCatalog.Api.csproj"
+
+# Копируем весь код
 COPY . .
 
+# Build API
 WORKDIR "/src/ArticleCatalog.Api"
-RUN dotnet build "./ArticleCatalog.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "ArticleCatalog.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Этот этап используется для публикации проекта службы, который будет скопирован на последний этап
+
+# Этап 3. Test stage - тестируем ВСЕ проекты
+FROM build AS test
+WORKDIR /src
+
+# Запуск тестов
+RUN dotnet test ArticleCatalog.Domain.Tests/ArticleCatalog.Domain.Tests.csproj --no-build --verbosity normal
+RUN dotnet test ArticleCatalog.Application.Tests/ArticleCatalog.Application.Tests.csproj --no-build --verbosity normal
+RUN dotnet test ArticleCatalog.Api.Tests/ArticleCatalog.Api.Tests.csproj --no-build --verbosity normal
+
+
+# Этап 4. Publish API
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./ArticleCatalog.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+WORKDIR /src
+RUN dotnet publish "ArticleCatalog.Api/ArticleCatalog.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Этот этап используется в рабочей среде или при запуске из VS в обычном режиме (по умолчанию, когда конфигурация отладки не используется)
+
+# Этап 5. Финальный контейнер
 FROM base AS final
 WORKDIR /app
+
+# Копируем результат публикации
 COPY --from=publish /app/publish .
+
 ENTRYPOINT ["dotnet", "ArticleCatalog.Api.dll"]

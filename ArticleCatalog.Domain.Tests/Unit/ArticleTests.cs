@@ -2,7 +2,7 @@ using ArticleCatalog.Domain.Entities;
 using ArticleCatalog.Domain.Events;
 using ArticleCatalog.Domain.Exceptions;
 
-namespace ArticleCatalog.Tests.Unit;
+namespace ArticleCatalog.Domain.Tests.Unit;
 
 /// <summary>
 /// Тесты для агрегата Article (Domain слой)

@@ -1,6 +1,6 @@
 using ArticleCatalog.Domain.ValueObjects;
 
-namespace ArticleCatalog.Tests.Unit;
+namespace ArticleCatalog.Domain.Tests.Unit;
 
 /// <summary>
 /// Тесты для Value Object TagSetKey (Domain слой)

@@ -1,7 +1,7 @@
 using ArticleCatalog.Domain.Entities;
 using ArticleCatalog.Domain.ValueObjects;
 
-namespace ArticleCatalog.Tests.Unit;
+namespace ArticleCatalog.Domain.Tests.Unit;
 
 /// <summary>
 /// Тесты для агрегата Section (Domain слой)

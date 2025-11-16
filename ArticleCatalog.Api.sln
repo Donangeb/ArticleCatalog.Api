@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArticleCatalog.Infrastructu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArticleCatalog.Tests", "ArticleCatalog.Tests\ArticleCatalog.Domain.Tests.csproj", "{B2C3D4E5-F6A7-8901-BCDE-F12345678901}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArticleCatalog.Domain.Tests", "ArticleCatalog.Domain.Tests\ArticleCatalog.Domain.Tests.csproj", "{B2C3D4E5-F6A7-8901-BCDE-F12345678901}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArticleCatalog.Application.Tests", "ArticleCatalog.Application.Tests\ArticleCatalog.Application.Tests.csproj", "{C3D4E5F6-A7B8-9012-CDEF-123456789012}"
 EndProject
