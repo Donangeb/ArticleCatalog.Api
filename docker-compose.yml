@@ -1,0 +1,45 @@
+﻿services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: articlecatalog_postgres
+    environment:
+      POSTGRES_DB: article_catalog
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d article_catalog"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - articlecatalog_network
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: ArticleCatalog.Api/Dockerfile
+    container_name: articlecatalog_api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=article_catalog;Username=postgres;Password=postgres123
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - articlecatalog_network
+    restart: unless-stopped
+
+networks:
+  articlecatalog_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
