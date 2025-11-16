@@ -147,7 +147,7 @@ public class ArticleTests
         article.DomainEvents.Should().ContainSingle(e => e is ArticleTagsChangedEvent);
         var changedEvent = article.DomainEvents.OfType<ArticleTagsChangedEvent>().Single();
         changedEvent.ArticleId.Should().Be(article.Id);
-        changedEvent.TagNames.Should().Contain("tag2");
+        changedEvent.NewTagNames.Should().Contain("tag2");
     }
 
     [Fact]

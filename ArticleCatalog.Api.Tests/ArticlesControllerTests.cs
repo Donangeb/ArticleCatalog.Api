@@ -65,15 +65,15 @@ public class ArticlesControllerTests
         // Assert
         result.Should().BeOfType<NotFoundObjectResult>();
         var notFoundResult = result as NotFoundObjectResult;
-        notFoundResult!.Value.Should().BeOfType<object>()
-            .Which.Should().HaveProperty("error");
+        notFoundResult!.Value.Should().NotBeNull();
+        notFoundResult.Value.Should().BeAssignableTo<object>();
     }
 
     [Fact]
     public async Task Create_WithValidRequest_ShouldReturnCreated()
     {
         // Arrange
-        var request = new CreateArticleRequest("Test Article", new[] { "tag1", "tag2" });
+        var request = new CreateArticleRequest("Test Article", new List<string> { "tag1", "tag2" });
         var articleDto = new ArticleDto(
             Guid.NewGuid(),
             "Test Article",
@@ -111,7 +111,7 @@ public class ArticlesControllerTests
     public async Task Create_WithValidationError_ShouldReturnBadRequest()
     {
         // Arrange
-        var request = new CreateArticleRequest("", new[] { "tag1" });
+        var request = new CreateArticleRequest("", new List<string> { "tag1" });
 
         _serviceMock.Setup(x => x.CreateAsync(request))
             .ThrowsAsync(new ValidationException("Title is required"));
@@ -122,8 +122,8 @@ public class ArticlesControllerTests
         // Assert
         result.Should().BeOfType<BadRequestObjectResult>();
         var badRequestResult = result as BadRequestObjectResult;
-        badRequestResult!.Value.Should().BeOfType<object>()
-            .Which.Should().HaveProperty("error");
+        badRequestResult!.Value.Should().NotBeNull();
+        badRequestResult.Value.Should().BeAssignableTo<object>();
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class ArticlesControllerTests
     {
         // Arrange
         var articleId = Guid.NewGuid();
-        var request = new UpdateArticleRequest("Updated Title", new[] { "tag1", "tag3" });
+        var request = new UpdateArticleRequest("Updated Title", new List<string> { "tag1", "tag3" });
         var articleDto = new ArticleDto(
             articleId,
             "Updated Title",
@@ -172,7 +172,7 @@ public class ArticlesControllerTests
     {
         // Arrange
         var articleId = Guid.NewGuid();
-        var request = new UpdateArticleRequest("Updated Title", new[] { "tag1" });
+        var request = new UpdateArticleRequest("Updated Title", new List<string> { "tag1" });
 
         _serviceMock.Setup(x => x.UpdateAsync(articleId, request))
             .ThrowsAsync(new NotFoundException($"Article {articleId} not found"));

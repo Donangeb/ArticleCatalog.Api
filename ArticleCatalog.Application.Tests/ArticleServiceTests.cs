@@ -47,7 +47,7 @@ public class ArticleServiceTests
     public async Task CreateAsync_WithValidRequest_ShouldCreateArticle()
     {
         // Arrange
-        var request = new CreateArticleRequest("Test Article", new[] { "tag1", "tag2" });
+        var request = new CreateArticleRequest("Test Article", new List<string> { "tag1", "tag2" });
         var tag1Id = Guid.NewGuid();
         var tag2Id = Guid.NewGuid();
         var tag1 = new Tag { Id = tag1Id, Name = "tag1" };
@@ -55,9 +55,9 @@ public class ArticleServiceTests
 
         _tagServiceMock.Setup(x => x.GetOrCreateManyAsync(request.Tags))
             .ReturnsAsync(new[] { tag1Id, tag2Id });
-        _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>()))
+        _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { tag1, tag2 });
-        _articleRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), default))
+        _articleRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Guid id, CancellationToken _) =>
             {
                 var article = Article.Create("Test Article", new[] { "tag1", "tag2" });
@@ -75,16 +75,16 @@ public class ArticleServiceTests
         result.Should().NotBeNull();
         result.Title.Should().Be("Test Article");
         result.Tags.Should().Contain("tag1", "tag2");
-        _articleRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Article>(), default), Times.Once);
-        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(default), Times.Once);
-        _eventDispatcherMock.Verify(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), default), Times.Once);
+        _articleRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Article>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _eventDispatcherMock.Verify(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task CreateAsync_WithInvalidTitle_ShouldThrowValidationException()
     {
         // Arrange
-        var request = new CreateArticleRequest("", new[] { "tag1" });
+        var request = new CreateArticleRequest("", new List<string> { "tag1" });
 
         // Act & Assert
         var act = async () => await _service.CreateAsync(request);
@@ -96,20 +96,20 @@ public class ArticleServiceTests
     {
         // Arrange
         var articleId = Guid.NewGuid();
-        var request = new UpdateArticleRequest("Updated Title", new[] { "tag1", "tag3" });
+        var request = new UpdateArticleRequest("Updated Title", new List<string> { "tag1", "tag3" });
         var existingArticle = Article.Create("Old Title", new[] { "tag1", "tag2" });
         var tag1Id = Guid.NewGuid();
         var tag3Id = Guid.NewGuid();
         var tag1 = new Tag { Id = tag1Id, Name = "tag1" };
         var tag3 = new Tag { Id = tag3Id, Name = "tag3" };
 
-        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, default))
+        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingArticle);
         _tagServiceMock.Setup(x => x.GetOrCreateManyAsync(request.Tags))
             .ReturnsAsync(new[] { tag1Id, tag3Id });
-        _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>()))
+        _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { tag1, tag3 });
-        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, default))
+        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Guid id, CancellationToken _) =>
             {
                 var article = Article.Create("Updated Title", new[] { "tag1", "tag3" });
@@ -127,9 +127,9 @@ public class ArticleServiceTests
         result.Should().NotBeNull();
         result.Title.Should().Be("Updated Title");
         existingArticle.Title.Should().Be("Updated Title");
-        _articleRepositoryMock.Verify(x => x.UpdateAsync(existingArticle, default), Times.Once);
-        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(default), Times.Once);
-        _eventDispatcherMock.Verify(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), default), Times.Once);
+        _articleRepositoryMock.Verify(x => x.UpdateAsync(existingArticle, It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _eventDispatcherMock.Verify(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -137,9 +137,9 @@ public class ArticleServiceTests
     {
         // Arrange
         var articleId = Guid.NewGuid();
-        var request = new UpdateArticleRequest("Updated Title", new[] { "tag1" });
+        var request = new UpdateArticleRequest("Updated Title", new List<string> { "tag1" });
 
-        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, default))
+        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Article?)null);
 
         // Act & Assert
@@ -158,7 +158,7 @@ public class ArticleServiceTests
         var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
         article.SetTags(new[] { tag1.Id, tag2.Id }, new[] { tag1, tag2 }, isNewArticle: true);
 
-        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, default))
+        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(article);
 
         // Act
@@ -176,7 +176,7 @@ public class ArticleServiceTests
         // Arrange
         var articleId = Guid.NewGuid();
 
-        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, default))
+        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Article?)null);
 
         // Act & Assert
@@ -195,18 +195,18 @@ public class ArticleServiceTests
         var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
         article.SetTags(new[] { tag1.Id, tag2.Id }, new[] { tag1, tag2 }, isNewArticle: true);
 
-        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, default))
+        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(article);
-        _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>()))
+        _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { tag1, tag2 });
 
         // Act
         await _service.DeleteAsync(articleId);
 
         // Assert
-        _articleRepositoryMock.Verify(x => x.RemoveAsync(article, default), Times.Once);
-        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(default), Times.Once);
-        _eventDispatcherMock.Verify(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), default), Times.Once);
+        _articleRepositoryMock.Verify(x => x.RemoveAsync(article, It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _eventDispatcherMock.Verify(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()), Times.Once);
         article.DomainEvents.Should().ContainSingle(e => e is Domain.Events.ArticleDeletedEvent);
     }
 
@@ -216,7 +216,7 @@ public class ArticleServiceTests
         // Arrange
         var articleId = Guid.NewGuid();
 
-        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, default))
+        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Article?)null);
 
         // Act & Assert
