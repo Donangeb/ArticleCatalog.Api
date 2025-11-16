@@ -109,17 +109,19 @@ public class ArticleService : IArticleService
         var article = await _articleRepository.GetByIdAsync(id)
             ?? throw new NotFoundException($"Article {id} not found");
 
-        var tags = article.ArticleTags
-            .OrderBy(at => at.Position)
-            .Select(at => at.Tag.Name)
-            .ToList();
+        // Получаем теги для статьи
+        var tagIds = article.ArticleTags.Select(at => at.TagId).ToList();
+        var tags = await _tagRepository.GetByIdsAsync(tagIds);
+        
+        // Используем метод агрегата для получения названий тегов
+        var tagNames = article.GetTagNames(tags);
 
         return new ArticleDto(
             article.Id,
             article.Title,
             article.CreatedAt,
             article.UpdatedAt,
-            tags
+            tagNames
         );
     }
 }

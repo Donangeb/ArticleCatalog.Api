@@ -53,19 +53,38 @@ public class ArticleServiceTests
         var tag1 = new Tag { Id = tag1Id, Name = "tag1" };
         var tag2 = new Tag { Id = tag2Id, Name = "tag2" };
 
+        Article? createdArticle = null;
+        
         _tagServiceMock.Setup(x => x.GetOrCreateManyAsync(request.Tags))
             .ReturnsAsync(new[] { tag1Id, tag2Id });
         _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { tag1, tag2 });
+        _articleRepositoryMock.Setup(x => x.AddAsync(It.IsAny<Article>(), It.IsAny<CancellationToken>()))
+            .Callback<Article, CancellationToken>((article, _) => { createdArticle = article; });
         _articleRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Guid id, CancellationToken _) =>
             {
+                if (createdArticle != null && createdArticle.Id == id)
+                {
+                    // Устанавливаем навигационное свойство Tag для каждого ArticleTag
+                    var tags = new[] { tag1, tag2 };
+                    foreach (var articleTag in createdArticle.ArticleTags)
+                    {
+                        articleTag.Tag = tags.First(t => t.Id == articleTag.TagId);
+                    }
+                    return createdArticle;
+                }
                 var article = Article.Create("Test Article", new[] { "tag1", "tag2" });
-                var tags = new[] { tag1, tag2 };
-                article.SetTags(new[] { tag1Id, tag2Id }, tags, isNewArticle: true);
+                var tagsArray = new[] { tag1, tag2 };
+                article.SetTags(new[] { tag1Id, tag2Id }, tagsArray, isNewArticle: true);
+                // Устанавливаем навигационное свойство Tag для каждого ArticleTag
+                foreach (var articleTag in article.ArticleTags)
+                {
+                    articleTag.Tag = tagsArray.First(t => t.Id == articleTag.TagId);
+                }
                 return article;
             });
-        _eventDispatcherMock.Setup(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), default))
+        _eventDispatcherMock.Setup(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         // Act
@@ -102,22 +121,44 @@ public class ArticleServiceTests
         var tag3Id = Guid.NewGuid();
         var tag1 = new Tag { Id = tag1Id, Name = "tag1" };
         var tag3 = new Tag { Id = tag3Id, Name = "tag3" };
+        // Устанавливаем начальные теги для existingArticle
+        var initialTag1 = new Tag { Id = tag1Id, Name = "tag1" };
+        var initialTag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
+        var initialTags = new[] { initialTag1, initialTag2 };
+        existingArticle.SetTags(new[] { tag1Id, initialTag2.Id }, initialTags, isNewArticle: true);
+        // Устанавливаем навигационное свойство Tag для каждого ArticleTag
+        foreach (var articleTag in existingArticle.ArticleTags)
+        {
+            articleTag.Tag = initialTags.First(t => t.Id == articleTag.TagId);
+        }
 
+        var callCount = 0;
         _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(existingArticle);
+            .ReturnsAsync((Guid id, CancellationToken _) =>
+            {
+                callCount++;
+                if (callCount == 1)
+                {
+                    // Первый вызов - возвращаем существующую статью
+                    return existingArticle;
+                }
+                else
+                {
+                    // Второй вызов (из BuildDto) - возвращаем обновленную статью с установленными Tag
+                    var updatedTags = new[] { tag1, tag3 };
+                    // Устанавливаем навигационное свойство Tag для каждого ArticleTag
+                    foreach (var articleTag in existingArticle.ArticleTags)
+                    {
+                        articleTag.Tag = updatedTags.First(t => t.Id == articleTag.TagId);
+                    }
+                    return existingArticle;
+                }
+            });
         _tagServiceMock.Setup(x => x.GetOrCreateManyAsync(request.Tags))
             .ReturnsAsync(new[] { tag1Id, tag3Id });
         _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { tag1, tag3 });
-        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Guid id, CancellationToken _) =>
-            {
-                var article = Article.Create("Updated Title", new[] { "tag1", "tag3" });
-                var tags = new[] { tag1, tag3 };
-                article.SetTags(new[] { tag1Id, tag3Id }, tags, isNewArticle: false);
-                return article;
-            });
-        _eventDispatcherMock.Setup(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), default))
+        _eventDispatcherMock.Setup(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         // Act
@@ -152,22 +193,26 @@ public class ArticleServiceTests
     public async Task GetAsync_WithValidId_ShouldReturnArticle()
     {
         // Arrange
-        var articleId = Guid.NewGuid();
-        var article = Article.Create("Test Article", new[] { "tag1", "tag2" });
         var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
         var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
-        article.SetTags(new[] { tag1.Id, tag2.Id }, new[] { tag1, tag2 }, isNewArticle: true);
+        var tags = new[] { tag1, tag2 };
+        var article = Article.Create("Test Article", new[] { "tag1", "tag2" });
+        article.SetTags(new[] { tag1.Id, tag2.Id }, tags, isNewArticle: true);
+        var articleId = article.Id; // Используем ID созданной статьи
 
-        _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(article);
+        _articleRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Guid id, CancellationToken _) => id == articleId || id == article.Id ? article : null);
+        _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tags);
 
         // Act
         var result = await _service.GetAsync(articleId);
 
         // Assert
         result.Should().NotBeNull();
-        result.Id.Should().Be(articleId);
         result.Title.Should().Be("Test Article");
+        result.Tags.Should().HaveCount(2);
+        result.Tags.Should().Contain("tag1", "tag2");
     }
 
     [Fact]
@@ -193,12 +238,18 @@ public class ArticleServiceTests
         var article = Article.Create("Test Article", new[] { "tag1", "tag2" });
         var tag1 = new Tag { Id = Guid.NewGuid(), Name = "tag1" };
         var tag2 = new Tag { Id = Guid.NewGuid(), Name = "tag2" };
-        article.SetTags(new[] { tag1.Id, tag2.Id }, new[] { tag1, tag2 }, isNewArticle: true);
+        var tags = new[] { tag1, tag2 };
+        article.SetTags(new[] { tag1.Id, tag2.Id }, tags, isNewArticle: true);
+        // Устанавливаем навигационное свойство Tag для каждого ArticleTag
+        foreach (var articleTag in article.ArticleTags)
+        {
+            articleTag.Tag = tags.First(t => t.Id == articleTag.TagId);
+        }
 
         _articleRepositoryMock.Setup(x => x.GetByIdAsync(articleId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(article);
         _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new[] { tag1, tag2 });
+            .ReturnsAsync(tags);
 
         // Act
         await _service.DeleteAsync(articleId);

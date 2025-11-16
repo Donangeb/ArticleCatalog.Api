@@ -8,6 +8,7 @@ using ArticleCatalog.Infrastructure.Data;
 using ArticleCatalog.Infrastructure.Repositories;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using ISectionServiceInternal = ArticleCatalog.Application.Interface.ISectionServiceInternal;
 
 namespace ArticleCatalog.Api.Extensions;
 
