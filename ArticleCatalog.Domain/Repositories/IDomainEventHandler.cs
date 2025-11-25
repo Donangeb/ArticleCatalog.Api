@@ -1,6 +1,6 @@
 using ArticleCatalog.Domain.Events;
 
-namespace ArticleCatalog.Application.EventHandlers;
+namespace ArticleCatalog.Domain.Repositories;
 
 /// <summary>
 /// Интерфейс для обработчиков доменных событий
@@ -9,4 +9,3 @@ public interface IDomainEventHandler<in TEvent> where TEvent : IDomainEvent
 {
     Task HandleAsync(TEvent domainEvent, CancellationToken cancellationToken = default);
 }
-

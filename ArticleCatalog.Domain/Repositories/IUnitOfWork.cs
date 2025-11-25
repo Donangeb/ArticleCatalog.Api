@@ -1,3 +1,5 @@
+using ArticleCatalog.Domain.Common;
+
 namespace ArticleCatalog.Domain.Repositories;
 
 /// <summary>
@@ -6,6 +8,7 @@ namespace ArticleCatalog.Domain.Repositories;
 public interface IUnitOfWork
 {
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task<int> SaveChangesWithOutboxAsync(IEnumerable<AggregateRoot<Guid>> aggregates, CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);
     Task RollbackTransactionAsync(CancellationToken cancellationToken = default);

@@ -5,6 +5,7 @@ using ArticleCatalog.Application.Validators;
 using ArticleCatalog.Domain.Repositories;
 using ArticleCatalog.Infrastructure.Data;
 using ArticleCatalog.Infrastructure.Repositories;
+using ArticleCatalog.Infrastructure.Services;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +28,9 @@ public static class ServiceCollectionExtensions
         // Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+        // Outbox Service
+        services.AddScoped<IOutboxService, OutboxService>();
+
         // Repositories (Domain interfaces, Infrastructure implementations)
         services.AddScoped<IArticleRepository, ArticleRepository>();
         services.AddScoped<ISectionRepository, SectionRepository>();
@@ -44,6 +48,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDomainEventHandler<Domain.Events.ArticleCreatedEvent>, ArticleCreatedEventHandler>();
         services.AddScoped<IDomainEventHandler<Domain.Events.ArticleTagsChangedEvent>, ArticleTagsChangedEventHandler>();
         services.AddScoped<IDomainEventHandler<Domain.Events.ArticleDeletedEvent>, ArticleDeletedEventHandler>();
+
+        // Outbox Processor (Background Service)
+        services.AddHostedService<OutboxProcessor>();
 
         // FluentValidation
         services.AddValidatorsFromAssemblyContaining<CreateArticleRequestValidator>();

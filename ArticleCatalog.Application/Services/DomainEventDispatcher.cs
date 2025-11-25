@@ -1,6 +1,6 @@
 using ArticleCatalog.Domain.Common;
 using ArticleCatalog.Domain.Events;
-using ArticleCatalog.Application.EventHandlers;
+using ArticleCatalog.Domain.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

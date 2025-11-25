@@ -18,7 +18,6 @@ public class ArticleServiceTests
     private readonly Mock<IArticleRepository> _articleRepositoryMock;
     private readonly Mock<ITagRepository> _tagRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-    private readonly Mock<IDomainEventDispatcher> _eventDispatcherMock;
     private readonly Mock<ITagService> _tagServiceMock;
     private readonly Mock<ILogger<ArticleService>> _loggerMock;
     private readonly ArticleService _service;
@@ -28,7 +27,6 @@ public class ArticleServiceTests
         _articleRepositoryMock = new Mock<IArticleRepository>();
         _tagRepositoryMock = new Mock<ITagRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
-        _eventDispatcherMock = new Mock<IDomainEventDispatcher>();
         _tagServiceMock = new Mock<ITagService>();
         _loggerMock = new Mock<ILogger<ArticleService>>();
 
@@ -36,7 +34,6 @@ public class ArticleServiceTests
             _articleRepositoryMock.Object,
             _tagRepositoryMock.Object,
             _unitOfWorkMock.Object,
-            _eventDispatcherMock.Object,
             _tagServiceMock.Object,
             _loggerMock.Object
         );
@@ -83,8 +80,12 @@ public class ArticleServiceTests
                 }
                 return article;
             });
-        _eventDispatcherMock.Setup(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()))
+        _unitOfWorkMock.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+        _unitOfWorkMock.Setup(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _unitOfWorkMock.Setup(x => x.SaveChangesWithOutboxAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         // Act
         var result = await _service.CreateAsync(request);
@@ -94,8 +95,9 @@ public class ArticleServiceTests
         result.Title.Should().Be("Test Article");
         result.Tags.Should().Contain("tag1", "tag2");
         _articleRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Article>(), It.IsAny<CancellationToken>()), Times.Once);
-        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        _eventDispatcherMock.Verify(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.SaveChangesWithOutboxAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -157,8 +159,12 @@ public class ArticleServiceTests
             .ReturnsAsync(new[] { tag1Id, tag3Id });
         _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { tag1, tag3 });
-        _eventDispatcherMock.Setup(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()))
+        _unitOfWorkMock.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+        _unitOfWorkMock.Setup(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _unitOfWorkMock.Setup(x => x.SaveChangesWithOutboxAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         // Act
         var result = await _service.UpdateAsync(articleId, request);
@@ -168,8 +174,9 @@ public class ArticleServiceTests
         result.Title.Should().Be("Updated Title");
         existingArticle.Title.Should().Be("Updated Title");
         _articleRepositoryMock.Verify(x => x.UpdateAsync(existingArticle, It.IsAny<CancellationToken>()), Times.Once);
-        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        _eventDispatcherMock.Verify(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.SaveChangesWithOutboxAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -249,14 +256,21 @@ public class ArticleServiceTests
             .ReturnsAsync(article);
         _tagRepositoryMock.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(tags);
+        _unitOfWorkMock.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _unitOfWorkMock.Setup(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _unitOfWorkMock.Setup(x => x.SaveChangesWithOutboxAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         // Act
         await _service.DeleteAsync(articleId);
 
         // Assert
         _articleRepositoryMock.Verify(x => x.RemoveAsync(article, It.IsAny<CancellationToken>()), Times.Once);
-        _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        _eventDispatcherMock.Verify(x => x.DispatchEventsAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.SaveChangesWithOutboxAsync(It.IsAny<IEnumerable<AggregateRoot<Guid>>>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
         article.DomainEvents.Should().ContainSingle(e => e is Domain.Events.ArticleDeletedEvent);
     }
 

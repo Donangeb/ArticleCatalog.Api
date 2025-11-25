@@ -13,6 +13,7 @@ namespace ArticleCatalog.Infrastructure.Data
         public DbSet<ArticleTag> ArticleTag => Set<ArticleTag>();
         public DbSet<Section> Section => Set<Section>();
         public DbSet<SectionTag> SectionTag => Set<SectionTag>();
+        public DbSet<OutboxMessage> OutboxMessage => Set<OutboxMessage>();
 
         protected override void OnModelCreating(ModelBuilder model)
         {

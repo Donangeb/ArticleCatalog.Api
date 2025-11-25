@@ -12,7 +12,6 @@ public class ArticleService : IArticleService
     private readonly IArticleRepository _articleRepository;
     private readonly ITagRepository _tagRepository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IDomainEventDispatcher _eventDispatcher;
     private readonly ITagService _tagService;
     private readonly ILogger<ArticleService> _logger;
 
@@ -20,14 +19,12 @@ public class ArticleService : IArticleService
         IArticleRepository articleRepository,
         ITagRepository tagRepository,
         IUnitOfWork unitOfWork,
-        IDomainEventDispatcher eventDispatcher,
         ITagService tagService,
         ILogger<ArticleService> logger)
     {
         _articleRepository = articleRepository;
         _tagRepository = tagRepository;
         _unitOfWork = unitOfWork;
-        _eventDispatcher = eventDispatcher;
         _tagService = tagService;
         _logger = logger;
     }
@@ -48,12 +45,9 @@ public class ArticleService : IArticleService
             // Устанавливаем теги (это также публикует доменное событие)
             article.SetTags(tagIds, tags, isNewArticle: true);
 
-            // Сохраняем статью
+            // Сохраняем статью и события в Outbox в рамках транзакции
             await _articleRepository.AddAsync(article);
-            await _unitOfWork.SaveChangesAsync();
-
-            // Публикуем доменные события
-            await _eventDispatcher.DispatchEventsAsync(new[] { article }); // через transaction outbox
+            await _unitOfWork.SaveChangesWithOutboxAsync(new[] { article });
         
             await _unitOfWork.CommitTransactionAsync();
 
@@ -70,26 +64,35 @@ public class ArticleService : IArticleService
 
     public async Task<ArticleDto> UpdateAsync(Guid id, UpdateArticleRequest request)
     {
-        var article = await _articleRepository.GetByIdAsync(id)
-            ?? throw new NotFoundException($"Article {id} not found");
+        await _unitOfWork.BeginTransactionAsync();
 
-        // Получаем или создаем теги
-        var tagIds = await _tagService.GetOrCreateManyAsync(request.Tags);
-        var tags = await _tagRepository.GetByIdsAsync(tagIds);
+        try
+        {
+            var article = await _articleRepository.GetByIdAsync(id)
+                ?? throw new NotFoundException($"Article {id} not found");
 
-        // Обновляем через методы агрегата
-        article.UpdateTitle(request.Title);
-        article.SetTags(tagIds, tags, isNewArticle: false);
-        article.MarkAsUpdated();
+            // Получаем или создаем теги
+            var tagIds = await _tagService.GetOrCreateManyAsync(request.Tags);
+            var tags = await _tagRepository.GetByIdsAsync(tagIds);
 
-        // Сохраняем изменения
-        await _articleRepository.UpdateAsync(article);
-        await _unitOfWork.SaveChangesAsync();
+            // Обновляем через методы агрегата
+            article.UpdateTitle(request.Title);
+            article.SetTags(tagIds, tags, isNewArticle: false);
+            article.MarkAsUpdated();
 
-        // Публикуем доменные события
-        await _eventDispatcher.DispatchEventsAsync(new[] { article });
+            // Сохраняем изменения и события в Outbox в рамках транзакции
+            await _articleRepository.UpdateAsync(article);
+            await _unitOfWork.SaveChangesWithOutboxAsync(new[] { article });
 
-        return await BuildDto(id);
+            await _unitOfWork.CommitTransactionAsync();
+
+            return await BuildDto(id);
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task<ArticleDto> GetAsync(Guid id)
@@ -99,23 +102,32 @@ public class ArticleService : IArticleService
 
     public async Task DeleteAsync(Guid id)
     {
-        var article = await _articleRepository.GetByIdAsync(id)
-            ?? throw new NotFoundException($"Article {id} not found");
+        await _unitOfWork.BeginTransactionAsync();
 
-        // Получаем теги для доменного события
-        var tagIds = article.ArticleTags.Select(at => at.TagId).ToList();
-        var tags = await _tagRepository.GetByIdsAsync(tagIds);
-        var tagNames = article.GetTagNames(tags);
+        try
+        {
+            var article = await _articleRepository.GetByIdAsync(id)
+                ?? throw new NotFoundException($"Article {id} not found");
 
-        // Публикуем событие удаления перед удалением
-        article.MarkAsDeleted(tagNames);
+            // Получаем теги для доменного события
+            var tagIds = article.ArticleTags.Select(at => at.TagId).ToList();
+            var tags = await _tagRepository.GetByIdsAsync(tagIds);
+            var tagNames = article.GetTagNames(tags);
 
-        // Удаляем статью
-        await _articleRepository.RemoveAsync(article);
-        await _unitOfWork.SaveChangesAsync();
+            // Публикуем событие удаления перед удалением
+            article.MarkAsDeleted(tagNames);
 
-        // Публикуем доменные события
-        await _eventDispatcher.DispatchEventsAsync(new[] { article });
+            // Удаляем статью и сохраняем события в Outbox в рамках транзакции
+            await _articleRepository.RemoveAsync(article);
+            await _unitOfWork.SaveChangesWithOutboxAsync(new[] { article });
+
+            await _unitOfWork.CommitTransactionAsync();
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     private async Task<ArticleDto> BuildDto(Guid id)
