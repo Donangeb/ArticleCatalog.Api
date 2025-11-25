@@ -48,7 +48,7 @@ public class ArticleService : IArticleService
         await _unitOfWork.SaveChangesAsync();
 
         // Публикуем доменные события
-        await _eventDispatcher.DispatchEventsAsync(new[] { article });
+        await _eventDispatcher.DispatchEventsAsync(new[] { article }); // через transaction outbox
 
         return await BuildDto(article.Id);
     }

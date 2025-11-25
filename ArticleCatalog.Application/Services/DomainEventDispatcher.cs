@@ -39,30 +39,21 @@ public class DomainEventDispatcher : IDomainEventDispatcher
         }
     }
 
-    private async Task DispatchEventAsync(IDomainEvent domainEvent, CancellationToken cancellationToken)
-    {
-        var eventType = domainEvent.GetType();
-        var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(eventType);
+    private async Task DispatchEventAsync(IDomainEvent domainEvent, CancellationToken cancellationToken) =>  await DispatcherEventInternalAsync((dynamic)domainEvent, cancellationToken);
 
-        var handlers = _serviceProvider.GetServices(handlerType);
+    private async Task DispatcherEventInternalAsync<TEvent>(TEvent domainEvent, CancellationToken cancellationToken) where TEvent : IDomainEvent
+    {
+        var handlers = _serviceProvider.GetServices<IDomainEventHandler<TEvent>>();
 
         foreach (var handler in handlers)
         {
             try
             {
-                var handleMethod = handlerType.GetMethod("HandleAsync");
-                if (handleMethod != null)
-                {
-                    var task = (Task?)handleMethod.Invoke(handler, new object[] { domainEvent, cancellationToken });
-                    if (task != null)
-                    {
-                        await task;
-                    }
-                }
+                await handler.HandleAsync(domainEvent, cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error dispatching domain event {EventType}", eventType.Name);
+                _logger.LogError(ex, "Error dispatching domain event {EventType}", typeof(TEvent).Name);
                 throw;
             }
         }

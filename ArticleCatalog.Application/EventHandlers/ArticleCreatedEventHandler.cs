@@ -38,6 +38,9 @@ public class ArticleCreatedEventHandler : IDomainEventHandler<ArticleCreatedEven
             {
                 // Получаем теги по именам
                 var tags = new List<Domain.Entities.Tag>();
+
+                //var avalibleTags = 
+
                 foreach (var tagName in domainEvent.TagNames)
                 {
                     var tag = await _tagRepository.GetByNameAsync(tagName, cancellationToken);
