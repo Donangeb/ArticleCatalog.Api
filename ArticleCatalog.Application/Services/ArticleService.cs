@@ -6,6 +6,7 @@ using ArticleCatalog.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace ArticleCatalog.Application.Services;
+
 public class ArticleService : IArticleService
 {
     private readonly IArticleRepository _articleRepository;
@@ -33,24 +34,38 @@ public class ArticleService : IArticleService
 
     public async Task<ArticleDto> CreateAsync(CreateArticleRequest request)
     {
-        // Получаем или создаем теги
-        var tagIds = await _tagService.GetOrCreateManyAsync(request.Tags);
-        var tags = await _tagRepository.GetByIdsAsync(tagIds);
 
-        // Создаем статью через фабричный метод агрегата
-        var article = Article.Create(request.Title, request.Tags);
+        await _unitOfWork.BeginTransactionAsync();
 
-        // Устанавливаем теги (это также публикует доменное событие)
-        article.SetTags(tagIds, tags, isNewArticle: true);
+        try
+        {
+            // Получаем или создаем теги
+            var tagIds = await _tagService.GetOrCreateManyAsync(request.Tags);
+            var tags = await _tagRepository.GetByIdsAsync(tagIds);
 
-        // Сохраняем статью
-        await _articleRepository.AddAsync(article);
-        await _unitOfWork.SaveChangesAsync();
+            // Создаем статью через фабричный метод агрегата
+            var article = Article.Create(request.Title, request.Tags);
+            // Устанавливаем теги (это также публикует доменное событие)
+            article.SetTags(tagIds, tags, isNewArticle: true);
 
-        // Публикуем доменные события
-        await _eventDispatcher.DispatchEventsAsync(new[] { article }); // через transaction outbox
+            // Сохраняем статью
+            await _articleRepository.AddAsync(article);
+            await _unitOfWork.SaveChangesAsync();
 
-        return await BuildDto(article.Id);
+            // Публикуем доменные события
+            await _eventDispatcher.DispatchEventsAsync(new[] { article }); // через transaction outbox
+        
+            await _unitOfWork.CommitTransactionAsync();
+
+            return await BuildDto(article.Id);
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
+
+
     }
 
     public async Task<ArticleDto> UpdateAsync(Guid id, UpdateArticleRequest request)

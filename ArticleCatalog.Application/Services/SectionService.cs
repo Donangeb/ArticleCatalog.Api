@@ -68,17 +68,4 @@ public class SectionService : ISectionService
             .ToList();
     }
 
-    public async Task AssignArticleToSectionAsync(Guid articleId)
-    {
-        // Этот метод больше не нужен - логика перенесена в обработчики доменных событий
-        // Оставляем пустую реализацию для обратной совместимости
-        await Task.CompletedTask;
-    }
-
-    public async Task CleanupSectionsAsync()
-    {
-        // Этот метод больше не нужен - логика перенесена в обработчики доменных событий
-        // Оставляем пустую реализацию для обратной совместимости
-        await Task.CompletedTask;
-    }
 }
